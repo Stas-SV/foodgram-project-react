@@ -23,3 +23,6 @@ class Recipe(models.Model):
                               upload_to='recipes/',
                               blank=True
                               )
+
+    def __str__(self):
+        return self.name
