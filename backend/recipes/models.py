@@ -4,10 +4,37 @@ from django.db import models
 User = get_user_model()
 
 
+class Tag(models.Model):
+    name = models.CharField(verbose_name='Название',
+                            max_length=200
+                            )
+    slug = models.SlugField(verbose_name='Slug',
+                            max_length=200
+                            )
+
+    def __str__(self):
+        return self.name
+
+
+class Ingredient(models.Model):
+    name = models.CharField(verbose_name='Название ингредиента',
+                            max_length=200
+                            )
+
+    def __str__(self):
+        return self.name
+
+
 class Recipe(models.Model):
     name = models.CharField(verbose_name='Название рецепта',
                             max_length=200
                             )
+    tags = models.ManyToManyField(Tag,
+                                  verbose_name='Теги',
+                                  related_name='recipes')
+    ingredients = models.ManyToManyField(Ingredient,
+                                         verbose_name='Игредиенты',
+                                         related_name='recipes')
     text = models.TextField('Описание',
                             help_text='Введите введите описание рецепта'
                             )
