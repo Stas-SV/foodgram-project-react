@@ -26,6 +26,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
+            'color',
             'slug'
         )
 
