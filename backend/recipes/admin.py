@@ -5,28 +5,24 @@ from .models import Recipe, Tag, Ingredient
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
-        'name',
-        'text',
-        'author'
+        'author',
+        'name'
     )
     search_fields = ('id',)
-    list_filter = ('name', 'author')
+    list_filter = ('name', 'author', 'tags')
 
 
 class TagAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
         'name',
-        'color',
-        'slug'
+        'color'
     )
 
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
         'name',
+        'measurements'
     )
 
 
