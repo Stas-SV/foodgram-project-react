@@ -63,3 +63,55 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecipeIngredient(models.Model):
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
+                               related_name='recipe_ingredients',
+                               verbose_name='Рецепты'
+                               )
+    ingredient = models.ForeignKey(Ingredient,
+                                   on_delete=models.CASCADE,
+                                   related_name='recipe_ingredients',
+                                   verbose_name='Ингредиент',
+                                   )
+    amount = models.PositiveIntegerField(verbose_name='Количество игредиентов',
+                                         default=1
+                                         )
+
+    def __str__(self):
+        return f'{self.ingredient.name} - {self.amount}'
+
+
+class Favorite(models.Model):
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
+                               related_name='favorites',
+                               verbose_name='Рецепт',
+                               )
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='favorites',
+                             verbose_name='Пользователь'
+                             )
+
+    def __str__(self):
+        return f'Рецепт {self.recipe.name} в избранном у {self.user}'
+
+
+class ShoppingList(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='shopping_list',
+                             verbose_name='Пользователь'
+                             )
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
+                               related_name='shopping_list',
+                               verbose_name='Рецепт')
+
+    def __str__(self):
+        return (
+            f'Рецепт {self.recipe.name} в списке покупок у'
+            f' {self.user}')
