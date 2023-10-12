@@ -24,3 +24,14 @@ class User(AbstractUser):
         max_length=100,
         verbose_name='Фамилия'
     )
+
+
+class Subscribe(models.Model):
+    user = models.ForeignKey(User,
+                             verbose_name='Подписчик',
+                             on_delete=models.CASCADE,
+                             related_name='subscriber')
+    author = models.ForeignKey(User,
+                               verbose_name='Автор',
+                               on_delete=models.CASCADE,
+                               related_name='subscribing')
