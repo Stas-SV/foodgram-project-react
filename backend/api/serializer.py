@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from recipes.models import Recipe, Tag, Ingredient, Favorite, ShoppingList
-from users.models import User
+from users.models import User, Subscribe
 from djoser.serializers import UserCreateSerializer, UserSerializer
 
 
@@ -14,9 +14,20 @@ class CreateUserSerializer(UserCreateSerializer):
 
 class CustomUserSerializer(UserSerializer):
 
+    is_subscribed = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return Subscribe.objects.filter(
+                author=obj.id, user=user
+            ).exists()
+        return False
 
 
 class RecipeSerializer(serializers.ModelSerializer):

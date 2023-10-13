@@ -6,6 +6,13 @@ from django.db import models
 # Create your models here.
 class User(AbstractUser):
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+        'password',
+    ]
     email = models.EmailField(
         max_length=200,
         verbose_name='Email',
@@ -15,6 +22,10 @@ class User(AbstractUser):
         max_length=200,
         verbose_name='Логин',
         unique=True,
+    )
+    password = models.CharField(
+        'Пароль',
+        max_length=150
     )
     first_name = models.CharField(
         max_length=200,
@@ -33,5 +44,5 @@ class Subscribe(models.Model):
                              related_name='subscriber')
     author = models.ForeignKey(User,
                                verbose_name='Автор',
-                               on_delete=models.CASCADE,
+                                on_delete=models.CASCADE,
                                related_name='subscribing')
