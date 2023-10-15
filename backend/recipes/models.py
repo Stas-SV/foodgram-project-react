@@ -25,7 +25,7 @@ class Ingredient(models.Model):
     name = models.CharField(verbose_name='Название ингредиента',
                             max_length=200
                             )
-    measurements = models.CharField(verbose_name='Единица измерения',
+    measurement_unit = models.CharField(verbose_name='Единица измерения',
                                     max_length=200,
                                     default='грамм'
                                     )
@@ -57,7 +57,7 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag,
                                   verbose_name='Теги',
                                   related_name='recipes')
-    time = models.PositiveSmallIntegerField(verbose_name='Время приготовления в минутах',
+    cooking_time = models.PositiveSmallIntegerField(verbose_name='Время приготовления в минутах',
                                             default=1
                                             )
 
@@ -87,14 +87,24 @@ class RecipeIngredient(models.Model):
 class Favorite(models.Model):
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
-                               related_name='favorites',
+                               related_name='favorites_recipe',
                                verbose_name='Рецепт',
                                )
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='favorites',
+                             related_name='favorites_user',
                              verbose_name='Пользователь'
                              )
+
+    class Meta:
+        verbose_name = 'Рецепт в Избранном'
+        verbose_name_plural = 'Рецепты в Избранном'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_favorite'
+            )
+        ]
 
     def __str__(self):
         return f'Рецепт {self.recipe.name} в избранном у {self.user}'
@@ -103,12 +113,12 @@ class Favorite(models.Model):
 class ShoppingList(models.Model):
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='shopping_list',
+                             related_name='shopping_user',
                              verbose_name='Пользователь'
                              )
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
-                               related_name='shopping_list',
+                               related_name='shopping_recipe',
                                verbose_name='Рецепт')
 
     def __str__(self):

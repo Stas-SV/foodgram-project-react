@@ -19,7 +19,7 @@ class User(AbstractUser):
         unique=True
     )
     username = models.CharField(
-        max_length=200,
+        max_length=150,
         verbose_name='Логин',
         unique=True,
     )
@@ -28,7 +28,7 @@ class User(AbstractUser):
         max_length=150
     )
     first_name = models.CharField(
-        max_length=200,
+        max_length=150,
         verbose_name='Имя'
     )
     last_name = models.CharField(
@@ -44,5 +44,5 @@ class Subscribe(models.Model):
                              related_name='subscriber')
     author = models.ForeignKey(User,
                                verbose_name='Автор',
-                                on_delete=models.CASCADE,
+                               on_delete=models.CASCADE,
                                related_name='subscribing')

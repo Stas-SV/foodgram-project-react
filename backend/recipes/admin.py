@@ -22,7 +22,7 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
         'name',
-        'measurements'
+        'measurement_unit'
     )
 
 
