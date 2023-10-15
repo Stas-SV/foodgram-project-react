@@ -1,18 +1,11 @@
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from .validators import validate_username
 
 # Create your models here.
 class User(AbstractUser):
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [
-        'username',
-        'first_name',
-        'last_name',
-        'password',
-    ]
     email = models.EmailField(
         max_length=200,
         verbose_name='Email',
@@ -22,10 +15,11 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='Логин',
         unique=True,
+        validators=(validate_username,)
     )
     password = models.CharField(
         'Пароль',
-        max_length=150
+        max_length=150,
     )
     first_name = models.CharField(
         max_length=150,
@@ -35,6 +29,14 @@ class User(AbstractUser):
         max_length=100,
         verbose_name='Фамилия'
     )
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.username
 
 
 class Subscribe(models.Model):
@@ -46,3 +48,10 @@ class Subscribe(models.Model):
                                verbose_name='Автор',
                                on_delete=models.CASCADE,
                                related_name='subscribing')
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return self.user
