@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-eicc!7-d5+%1)de!g(%iauqs%2%^!+5bf(pa5gy1l$zbe+j@ag'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['158.160.66.58', '127.0.0.1', 'localhost', 'oscargram.myvnc.com']
 
