@@ -12,14 +12,7 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-        )
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'is_subscribed')
 
     def get_is_subscribed(self, validated_data):
         if (
@@ -105,7 +98,7 @@ class SubscribeListSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if self.context['request'].user == validated_data:
             raise serializers.ValidationError(
-                {'errors': 'Нет смысла подписаться на себя.'}
+                {'errors': 'Подписка невозможна'}
             )
         return validated_data
 
@@ -240,3 +233,32 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return RecipeSerializer(instance, context=self.context).data
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+
+    current_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate(self, validated_data):
+        try:
+            validate_password(validated_data['new_password'])
+        except exceptions.ValidationError as exept:
+            raise serializers.ValidationError(
+                {'new_password': list(exept.messages)}
+            )
+        return super().validate(validated_data)
+
+    def update(self, instance, validated_data):
+        if not instance.check_password(validated_data['current_password']):
+            raise serializers.ValidationError(
+                {'current_password': 'Неверный пароль.'}
+            )
+        if (
+            validated_data['current_password']
+            == validated_data['new_password']
+        ):
+            raise serializers.ValidationError(
+                {'new_password': 'Пароль совпадает с текущим.'}
+            )
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return validated_data

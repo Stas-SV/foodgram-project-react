@@ -6,12 +6,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .serializer import *
 from .pagination import Paginator
+from .filters import RecipesFilter
 from .permissions import AdminOrReadOnly
 from recipes.models import Recipe, RecipeIngredient, Favorite, Ingredient, Shopping_cart, Tag
 from users.models import User, Subscribe
 
 
-class UserViewSet(UserViewSet):
+class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     pagination_class = Paginator
@@ -66,6 +67,22 @@ class UserViewSet(UserViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=(IsAuthenticated,)
+    )
+    def set_password(self, request):
+        serializer = ChangePasswordSerializer(
+            request.user, data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {'detail': 'Пароль успешно изменен!'},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
 
 class TagViewsSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
@@ -84,6 +101,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (AdminOrReadOnly,)
     pagination_class = Paginator
+    filterset_class = RecipesFilter
     http_method_names = ['get', 'post', 'patch', 'create', 'delete']
 
     def get_serializer_class(self):
