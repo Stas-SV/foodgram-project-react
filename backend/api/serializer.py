@@ -14,7 +14,8 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'is_subscribed')
+        fields = ('id', 'username', 'first_name',
+                  'last_name', 'email', 'is_subscribed')
 
     def get_is_subscribed(self, validated_data):
         if (
@@ -33,7 +34,8 @@ class CreateUserSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'password')
 
     def validate(self, validated_data):
         invalid_usernames = ['me']
@@ -63,7 +65,10 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name',
+                  'is_subscribed', 'recipes',
+                  'recipes_count')
 
     def get_is_subscribed(self, validated_data):
         user = self.context['request'].user
@@ -95,7 +100,10 @@ class SubscribeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name',
+                  'is_subscribed', 'recipes',
+                  'recipes_count')
 
     def validate(self, validated_data):
         if self.context['request'].user == validated_data:
@@ -205,7 +213,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('name', 'cooking_time', 'text', 'tags', 'ingredients', 'image', 'author')
+        fields = ('name', 'cooking_time',
+                  'text', 'tags', 'ingredients',
+                  'image', 'author')
 
     def add_ingredients(self, recipe, ingredients):
         objs = []
@@ -250,7 +260,8 @@ class ChangePasswordSerializer(serializers.Serializer):
         return super().validate(validated_data)
 
     def update(self, instance, validated_data):
-        if not instance.check_password(validated_data['current_password']):
+        if not instance.check_password(
+                validated_data['current_password']):
             raise serializers.ValidationError(
                 {'current_password': 'Неверный пароль.'}
             )

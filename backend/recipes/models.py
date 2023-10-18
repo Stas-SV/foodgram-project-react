@@ -29,13 +29,15 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(verbose_name='Название ингредиента',
-                            max_length=200
-                            )
-    measurement_unit = models.CharField(verbose_name='Единица измерения',
-                                        max_length=200,
-                                        default='грамм'
-                                        )
+    name = models.CharField(
+        verbose_name='Название ингредиента',
+        max_length=200
+    )
+    measurement_unit = models.CharField(
+        verbose_name='Единица измерения',
+        max_length=200,
+        default='грамм'
+    )
 
     class Meta:
         ordering = ['name']
@@ -66,25 +68,30 @@ class Recipe(models.Model):
                             blank=True,
                             default=None
                             )
-    ingredients = models.ManyToManyField(Ingredient,
-                                         verbose_name='Игредиенты',
-                                         through='RecipeIngredient',
-                                         through_fields=('recipe', 'ingredient'),
-                                         )
-    tags = models.ManyToManyField(Tag,
-                                  verbose_name='Теги',
-                                  related_name='recipes')
-    cooking_time = models.PositiveSmallIntegerField(verbose_name='Время приготовления в минутах',
-                                                    validators=[
-                                                        validators.MinValueValidator(1),
-                                                        validators.MaxValueValidator(32000),
-                                                    ]
-                                                    )
-    pub_date = models.DateTimeField(verbose_name='Дата публикации рецепта',
-                                    auto_now_add=True,
-                                    null=True,
-                                    blank=True,
-                                    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        verbose_name='Игредиенты',
+        through='RecipeIngredient',
+        through_fields=('recipe', 'ingredient'),
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        verbose_name='Теги',
+        related_name='recipes'
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления в минутах',
+        validators=[
+            validators.MinValueValidator(1),
+            validators.MaxValueValidator(32000),
+        ]
+    )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации рецепта',
+        auto_now_add=True,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ['-pub_date']
@@ -96,27 +103,32 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe,
-                               on_delete=models.CASCADE,
-                               related_name='recipe_ingredients',
-                               verbose_name='Ингредиенты в рецепте'
-                               )
-    ingredient = models.ForeignKey(Ingredient,
-                                   on_delete=models.CASCADE,
-                                   verbose_name='Ингредиент',
-                                   )
-    amount = models.PositiveIntegerField(verbose_name='Количество игредиентов',
-                                         validators=(MinValueValidator(
-                                             1,
-                                             message='Минимальное количество 1'),),
-                                         )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
+        verbose_name='Ингредиенты в рецепте'
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиент',
+    )
+    amount = models.PositiveIntegerField(
+        verbose_name='Количество игредиентов',
+        validators=(MinValueValidator(
+            1,
+            message='Минимальное количество 1'),
+        ),
+    )
 
     class Meta:
         ordering = ['recipe']
         verbose_name = 'Ингредиенты для приготовления'
         constraints = [
             models.UniqueConstraint(
-                fields=['recipe', 'ingredient'], name='unique_combination'
+                fields=['recipe', 'ingredient'],
+                name='unique_combination'
             )
         ]
 
