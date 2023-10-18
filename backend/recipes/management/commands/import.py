@@ -3,9 +3,9 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand
 
-from recipes.models import Ingredient
+from recipes.models import Ingredient, Tag
 
-COMMAND_TO_IMPORT = 'start'
+COMMAND_TO_IMPORT = 'run'
 
 PATH = Path.cwd() / 'recipes' / 'data'
 
@@ -32,4 +32,11 @@ class Command(BaseCommand):
                 contents = csv.DictReader(csvfile)
                 for row in contents:
                     imported_models[key](row)
-        self.stdout.write(self.style.SUCCESS('Данные загружены успешно!'))
+        self.stdout.write(self.style.SUCCESS('Игредиенты загружены успешно!'))
+
+        data = [
+            {'name': 'Завтрак', 'color': '#fceb97', 'slug': 'breakfast'},
+            {'name': 'Обед', 'color': '#6bb324', 'slug': 'dinner'},
+            {'name': 'Ужин', 'color': '#dc6c14', 'slug': 'supper'}]
+        Tag.objects.bulk_create(Tag(**tag) for tag in data)
+        self.stdout.write(self.style.SUCCESS('Тэги загружены!'))

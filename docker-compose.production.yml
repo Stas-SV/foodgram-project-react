@@ -1,0 +1,51 @@
+version: '3.3'
+
+volumes:
+  db:
+  static:
+  media:
+  docs:
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - db:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
+  backend:
+    image: stanon/foodgram_backend
+    restart: always
+    volumes:
+      - static:/app/static/
+      - media:/app/media/
+      - docs:/app/api/docs/
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  frontend:
+    image: stanon/foodgram_frontend
+    env_file:
+      - .env
+    volumes:
+      - ./frontend/:/app/result_build/
+    depends_on:
+      - backend
+
+  nginx:
+    image: stanon/foodgram_gateway
+    env_file:
+      - .env
+    ports:
+      - "8000:80"
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html/
+      - docs:/var/html/api/docs/
+      - static:/var/html/static/
+      - media:/var/html/media/
+    depends_on:
+      - frontend
+    restart: always

@@ -30,13 +30,11 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(verbose_name='Название ингредиента',
-                            max_length=200,
-                            blank=True
+                            max_length=200
                             )
     measurement_unit = models.CharField(verbose_name='Единица измерения',
                                         max_length=200,
-                                        default='грамм',
-                                        blank=True
+                                        default='грамм'
                                         )
 
     class Meta:
@@ -45,7 +43,7 @@ class Ingredient(models.Model):
         verbose_name_plural = 'Ингридиенты'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Recipe(models.Model):

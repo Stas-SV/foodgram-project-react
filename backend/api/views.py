@@ -22,15 +22,10 @@ class CustomUserViewSet(UserViewSet):
             return CustomUserSerializer
         return CreateUserSerializer
 
-    @action(
-        detail=False,
-        methods=['get'],
-        pagination_class=None,
-        permission_classes=(IsAuthenticated,),
-    )
-    def me(self, request):
-        serializer = CustomUserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_permissions(self):
+        if self.action == 'me':
+            self.permission_classes = (IsAuthenticated,)
+        return super().get_permissions()
 
     @action(
         detail=True,
