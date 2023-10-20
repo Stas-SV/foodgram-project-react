@@ -1,22 +1,31 @@
+
 from django.contrib.auth import get_user_model
 from django.core import validators
 from django.core.validators import MinValueValidator
 from django.db import models
 from colorfield.fields import ColorField
 
+MAX_LENGTH = 200
+MAX_STRING = 150
+MAX_LIMIT = 32000
+MIN_LIMIT = 1
+
 User = get_user_model()
 
 
 class Tag(models.Model):
     name = models.CharField(verbose_name='Название',
-                            max_length=200
+                            max_length=MAX_LENGTH,
+                            unique=True
                             )
     color = ColorField(verbose_name='Цвет',
-                       format='hex',
-                       default='#49B64E')
+                       unique=True,
+                       help_text='Введите НЕХ-код'
+                       )
 
     slug = models.SlugField(verbose_name='Slug',
-                            max_length=200
+                            max_length=MAX_LENGTH,
+                            unique=True
                             )
 
     class Meta:
@@ -31,18 +40,23 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название ингредиента',
-        max_length=200
+        max_length=MAX_LENGTH
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
-        max_length=200,
-        default='грамм'
+        max_length=MAX_LENGTH
     )
 
     class Meta:
         ordering = ['name']
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('name', 'measurement_unit'),
+                name='unique_ingredient_unit'
+            )
+        ]
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
@@ -55,19 +69,12 @@ class Recipe(models.Model):
                                verbose_name='Автор'
                                )
     name = models.CharField(verbose_name='Название рецепта',
-                            max_length=200
+                            max_length=MAX_LENGTH
                             )
     image = models.ImageField(verbose_name='Картинка',
-                              upload_to='recipes/',
-                              blank=True,
-                              null=True,
-                              default=None
+                              upload_to='recipes/'
                               )
-    text = models.TextField('Описание',
-                            null=True,
-                            blank=True,
-                            default=None
-                            )
+    text = models.TextField(verbose_name='Описание')
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Игредиенты',
@@ -79,18 +86,17 @@ class Recipe(models.Model):
         verbose_name='Теги',
         related_name='recipes'
     )
-    cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления в минутах',
+    cooking_time = models.PositiveIntegerField(
+        "Время приготовления блюда в минутах",
         validators=[
-            validators.MinValueValidator(1),
-            validators.MaxValueValidator(32000),
-        ]
+            MinValueValidator(
+                1, "Время приготовления блюда должно" " быть не менее 1 минуты"
+            ),
+        ],
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации рецепта',
-        auto_now_add=True,
-        null=True,
-        blank=True,
+        auto_now_add=True
     )
 
     class Meta:
@@ -111,15 +117,13 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
+        related_name="recipe_ingredients",
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
     amount = models.PositiveIntegerField(
-        verbose_name='Количество игредиентов',
-        validators=(MinValueValidator(
-            1,
-            message='Минимальное количество 1'),
-        ),
+        "Количество",
+        validators=[MinValueValidator(1, "Количество не может быть меньше 1")],
     )
 
     class Meta:
@@ -128,7 +132,7 @@ class RecipeIngredient(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
-                name='unique_combination'
+                name='unique_recipe_ingredient'
             )
         ]
 

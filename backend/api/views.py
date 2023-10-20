@@ -1,8 +1,8 @@
+from django.db.models import Sum
 from django.shortcuts import HttpResponse, get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .serializer import (
     CustomUserSerializer,
@@ -18,7 +18,7 @@ from .serializer import (
 )
 from .pagination import Paginator
 from .filters import RecipesFilter
-from .permissions import AdminOrReadOnly
+from .permissions import AuthorOrReadOnly
 from recipes.models import (
     Recipe,
     RecipeIngredient,
@@ -33,23 +33,35 @@ from users.models import User, Subscribe
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
-    permission_classes = (AllowAny,)
     pagination_class = Paginator
 
+    def get_permissions(self):
+        if self.action in ("retrieve", "create"):
+            self.permission_classes = [
+                permissions.AllowAny,
+            ]
+        return super(self.__class__, self).get_permissions()
+
     def get_serializer_class(self):
+        if self.action in ['set_password']:
+            return ChangePasswordSerializer
         if self.action in ('list', 'retrieve'):
             return CustomUserSerializer
         return CreateUserSerializer
 
-    def get_permissions(self):
-        if self.action == 'me':
-            self.permission_classes = (IsAuthenticated,)
-        return super().get_permissions()
+    def create(self, request, *args, **kwargs):
+        password = request.data.get("password")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        user.set_password(password)
+        user.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(permissions.IsAuthenticated,),
         pagination_class=None,
     )
     def subscribe(self, request, **kwargs):
@@ -70,7 +82,7 @@ class CustomUserViewSet(UserViewSet):
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(permissions.IsAuthenticated,),
         pagination_class=Paginator,
     )
     def subscriptions(self, request):
@@ -81,28 +93,12 @@ class CustomUserViewSet(UserViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-    @action(
-        detail=False,
-        methods=['post'],
-        permission_classes=(IsAuthenticated,)
-    )
-    def set_password(self, request):
-        serializer = ChangePasswordSerializer(
-            request.user, data=request.data
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            {'detail': 'Пароль успешно изменен!'},
-            status=status.HTTP_204_NO_CONTENT,
-        )
 
-
-class TagViewsSet(viewsets.ModelViewSet):
+class TagViewsSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-    permission_classes = (AllowAny,)
+    permission_classes = (permissions.AllowAny,)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -113,7 +109,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (AuthorOrReadOnly,)
     pagination_class = Paginator
     filterset_class = RecipesFilter
     http_method_names = ['get', 'post', 'patch', 'create', 'delete']
@@ -138,7 +134,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(permissions.IsAuthenticated,),
     )
     def favorite(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
@@ -155,7 +151,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,),
+        permission_classes=(permissions.IsAuthenticated,),
         pagination_class=None,
     )
     def shopping_cart(self, request, **kwargs):
@@ -174,34 +170,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['get'],
-        permission_classes=[IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        user = request.user
-        shopping = user.shopping_user.all()
-        shopping_list = {}
-        for shop in shopping:
-            recipe = shop.recipe
-            ingredients = RecipeIngredient.objects.filter(recipe=recipe)
-            for ingredient in ingredients:
-                name = ingredient.ingredient.name
-                amount = ingredient.amount
-                measurement_unit = ingredient.ingredient.measurement_unit
-                if name not in shopping_list:
-                    shopping_list[name] = {
-                        'measurement_unit': measurement_unit,
-                        'amount': amount,
-                    }
-                else:
-                    shopping_list[name]['amount'] += amount
-        shop_list = [
-            f"{name} - {data['amount']}{data['measurement_unit']}"
-            for name, data in shopping_list.items()
-        ]
-        responce = HttpResponse(
-            'Cписок покупок:\n' + '\n'.join(shop_list),
-            content_type='text/plain',
-        )
-        responce['Content-Disposition'] = 'attachment; filename=shop_list.txt'
-        return responce
+        ingredients = RecipeIngredient.objects.filter(
+            recipe__shopping_recipe__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(total=Sum('amount'))
+
+        shopping_cart_list = 'Список покупок:\n'
+        for ingredient in ingredients:
+            shopping_cart_list += (
+                f' {ingredient["ingredient__name"]} - {ingredient["total"]}'
+                f'({ingredient["ingredient__measurement_unit"]})\n')
+
+        response = HttpResponse(shopping_cart_list, content_type='text/plain')
+        response['Content-Disposition'] = (f'attachment;'
+                                           f'filename={"Список покупок"}')
+        return response

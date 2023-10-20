@@ -1,38 +1,30 @@
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from .validators import validate_username
+
+MAX_LENGTH = 200
+MAX_STRING = 150
 
 
-# Create your models here.
 class User(AbstractUser):
-
     email = models.EmailField(
-        max_length=200,
-        verbose_name='Email',
         unique=True
-    )
-    username = models.CharField(
-        max_length=150,
-        verbose_name='Логин',
-        unique=True,
-        validators=(validate_username,)
     )
     password = models.CharField(
         'Пароль',
-        max_length=150,
+        max_length=MAX_STRING,
     )
     first_name = models.CharField(
-        max_length=150,
+        max_length=MAX_STRING,
         verbose_name='Имя'
     )
     last_name = models.CharField(
-        max_length=100,
+        max_length=150,
         verbose_name='Фамилия'
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         ordering = ['id']
