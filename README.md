@@ -35,3 +35,4 @@ Foodgram - сервис для публикации рецептов.
 </ul>
 <li>dockerhub_username: stanon</li>
 <li>repo_owner: Stas-SV</li>
+<li>Спецификация доступна по адресу: https://oscartaski.myvnc.com/api/docs/</li>
