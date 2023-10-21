@@ -124,6 +124,7 @@ class RecipeIngredient(models.Model):
             validators.MaxValueValidator(MAX_LIMIT),
         ]
     )
+
     class Meta:
         ordering = ['recipe']
         verbose_name = 'Ингредиенты для приготовления'

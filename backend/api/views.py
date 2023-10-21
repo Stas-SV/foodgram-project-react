@@ -7,9 +7,17 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .serializer import UserSerializer, UserCreateSerializer, Set_PasswordSerializer, SubscribeListSerializer, \
-    SubscriptionsSerializer, TagSerializer, IngredientSerializer, RecipeSerializer, RecipeCreateSerializer, \
-    RecipeListSerializer
+from .serializer import (
+    UserSerializer,
+    UserCreateSerializer,
+    Set_PasswordSerializer,
+    SubscribeListSerializer,
+    SubscriptionsSerializer,
+    TagSerializer,
+    IngredientSerializer,
+    RecipeSerializer,
+    RecipeCreateSerializer,
+    RecipeListSerializer)
 from .filters import RecipesFilter
 from .pagination import CustomPaginator
 from .permissions import CustomAuthorOrReadOnly
