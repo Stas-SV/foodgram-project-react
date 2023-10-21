@@ -29,9 +29,9 @@ Foodgram - сервис для публикации рецептов.
 </ul>
 <h3>Админка:</h3>
 <ul>
-<li>Email: admin@ya.ru</li>
-<li>Имя пользователя: Admin</li>
-<li>Password: Admin</li>
+<li>Email: admin@admin.ru</li>
+<li>Имя пользователя: admin</li>
+<li>Password: admin</li>
 </ul>
 <li>dockerhub_username: stanon</li>
 <li>repo_owner: Stas-SV</li>
