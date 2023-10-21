@@ -1,30 +1,19 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-MAX_LENGTH = 200
-MAX_STRING = 150
+LEN_EMAIL = 254
+LEN_STRING = 150
 
 
 class User(AbstractUser):
-    email = models.EmailField(
-        unique=True
-    )
-    password = models.CharField(
-        'Пароль',
-        max_length=MAX_STRING,
-    )
+    email = models.EmailField(max_length=LEN_EMAIL, unique=True)
+    username = models.CharField(max_length=LEN_STRING, unique=True)
     first_name = models.CharField(
-        max_length=MAX_STRING,
-        verbose_name='Имя'
+        'имя', max_length=LEN_STRING
     )
     last_name = models.CharField(
-        max_length=150,
-        verbose_name='Фамилия'
+        'фамилия', max_length=LEN_STRING
     )
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         ordering = ['id']
@@ -35,19 +24,27 @@ class User(AbstractUser):
         return self.username
 
 
-class Subscribe(models.Model):
-    user = models.ForeignKey(User,
-                             verbose_name='Подписчик',
-                             on_delete=models.CASCADE,
-                             related_name='subscriber')
-    author = models.ForeignKey(User,
-                               verbose_name='Автор',
-                               on_delete=models.CASCADE,
-                               related_name='subscribing')
+class Subscriptions(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriber',
+        verbose_name='Подписчик',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscribing',
+        verbose_name='Автор рецепта',
+    )
+    date_subscriptions = models.DateTimeField(
+        editable=False, auto_now_add=True
+    )
 
     class Meta:
+        ordering = ['-date_subscriptions']
         verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
+        verbose_name_plural = 'Подписки пользователей'
 
     def __str__(self):
-        return self.user
+        return f'{self.user.username} - {self.author.username}'

@@ -1,14 +1,13 @@
-from django.contrib.auth import get_user_model
+from django.core import validators
 from django.core.validators import MinValueValidator
 from django.db import models
 from colorfield.fields import ColorField
+from users.models import User
 
 MAX_LENGTH = 200
 MAX_STRING = 150
 MAX_LIMIT = 32000
 MIN_LIMIT = 1
-
-User = get_user_model()
 
 
 class Tag(models.Model):
@@ -115,15 +114,16 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        related_name="recipe_ingredients",
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
-    amount = models.PositiveIntegerField(
-        "Количество",
-        validators=[MinValueValidator(1, "Количество не может быть меньше 1")],
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
+        validators=[
+            validators.MinValueValidator(MIN_LIMIT),
+            validators.MaxValueValidator(MAX_LIMIT),
+        ]
     )
-
     class Meta:
         ordering = ['recipe']
         verbose_name = 'Ингредиенты для приготовления'
@@ -135,10 +135,15 @@ class RecipeIngredient(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.ingredient.name} - {self.amount}'
+        return (
+            f'{self.recipe.name}: '
+            f'{self.ingredient.name} - '
+            f'{self.amount} '
+            f'{self.ingredient.measurement_unit}'
+        )
 
 
-class Favorite(models.Model):
+class Favorites(models.Model):
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
                                related_name='favorite_recipe',
@@ -166,6 +171,9 @@ class Favorite(models.Model):
 
 
 class Shopping_cart(models.Model):
+    Ingredients = models.ManyToManyField(
+        Ingredient, verbose_name='Ингредиент в кщрзине', blank=True
+    )
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              related_name='shopping_user',
@@ -179,12 +187,12 @@ class Shopping_cart(models.Model):
     class Meta:
         ordering = ['user']
         verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины покупок пользователей'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'recipe'],
-                                    name='unique_shopping_cart')
+            models.UniqueConstraint(
+                fields=['user', 'recipe'], name='unique_shopping_cart'
+            )
         ]
 
     def __str__(self):
-        return (
-            f'Рецепт {self.recipe.name} в списке покупок у'
-            f' {self.user}')
+        return f'{self.user.username} - {self.recipe.name}'

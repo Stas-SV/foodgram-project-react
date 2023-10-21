@@ -1,29 +1,10 @@
 from django.contrib import admin
 
-from .models import User, Subscribe
+from users import models
+
+admin.site.register(models.User)
 
 
-class UserAdmin(admin.ModelAdmin):
-    list_display = (
-        'username',
-        'pk',
-        'email',
-        'password',
-        'first_name',
-        'last_name',
-    )
-    list_filter = ('username', 'email')
-    search_fields = ('username', 'email')
-
-
-class SubscribeAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'user',
-        'author'
-    )
-    list_editable = ('user', 'author')
-
-
-admin.site.register(User, UserAdmin)
-admin.site.register(Subscribe, SubscribeAdmin)
+@admin.register(models.Subscriptions)
+class SubscriptionsAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'user', 'author', 'date_subscriptions')

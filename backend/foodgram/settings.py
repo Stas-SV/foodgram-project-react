@@ -7,7 +7,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', default='secretkey')
+SECRET_KEY = os.getenv('SECRET_KEY', default=' ')
 
 DEBUG = False
 
@@ -138,7 +138,17 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
+    'HIDE_USERS': False,
     'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializer.UserSerializer',
+        'user_create': 'api.serializer.UserCreateSerializer',
+        'current_user': 'api.serializer.UserSerializer',
+    },
+    'PERMISSIONS': {
+        'user_list': ('rest_framework.permissions.AllowAny',),
+        'user': ('rest_framework.permissions.AllowAny',),
+    },
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
