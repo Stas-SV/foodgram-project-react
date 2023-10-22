@@ -1,6 +1,4 @@
 import webcolors
-from django.contrib.auth.password_validation import validate_password
-from django.core import exceptions
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -54,36 +52,60 @@ class UserCreateSerializer(UserCreateSerializer):
             'password',
         )
 
+class PasswordSetSerializer(UserSerializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
-class Set_PasswordSerializer(serializers.Serializer):
+    class Meta:
+        model = User
+        fields = (
+            "current_password",
+            "new_password",
+        )
 
-    current_password = serializers.CharField()
-    new_password = serializers.CharField()
+    def validate(self, data):
+        user = self.context["request"].user
 
-    def validate(self, validated_data):
-        try:
-            validate_password(validated_data['new_password'])
-        except exceptions.ValidationError as exept:
-            raise serializers.ValidationError(
-                {'new_password': list(exept.messages)}
-            )
-        return super().validate(validated_data)
+        if not user.check_password(data["current_password"]):
+            raise serializers.ValidationError("Неверный старый пароль.")
+
+        return data
 
     def update(self, instance, validated_data):
-        if not instance.check_password(validated_data['current_password']):
-            raise serializers.ValidationError(
-                {'current_password': 'Неправильный пароль.'}
-            )
-        if (
-            validated_data['current_password']
-            == validated_data['new_password']
-        ):
-            raise serializers.ValidationError(
-                {'new_password': 'Новый пароль должен отличаться от текущего.'}
-            )
-        instance.set_password(validated_data['new_password'])
+        instance.set_password(validated_data["new_password"])
         instance.save()
-        return validated_data
+        return instance
+
+
+# class Set_PasswordSerializer(serializers.Serializer):
+#
+#     current_password = serializers.CharField()
+#     new_password = serializers.CharField()
+#
+#     def validate(self, validated_data):
+#         try:
+#             validate_password(validated_data['new_password'])
+#         except exceptions.ValidationError as exept:
+#             raise serializers.ValidationError(
+#                 {'new_password': list(exept.messages)}
+#             )
+#         return super().validate(validated_data)
+#
+#     def update(self, instance, validated_data):
+#         if not instance.check_password(validated_data['current_password']):
+#             raise serializers.ValidationError(
+#                 {'current_password': 'Неправильный пароль.'}
+#             )
+#         if (
+#             validated_data['current_password']
+#             == validated_data['new_password']
+#         ):
+#             raise serializers.ValidationError(
+#                 {'new_password': 'Новый пароль должен отличаться от текущего.'}
+#             )
+#         instance.set_password(validated_data['new_password'])
+#         instance.save()
+#         return validated_data
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
