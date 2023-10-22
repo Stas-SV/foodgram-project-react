@@ -52,6 +52,7 @@ class UserCreateSerializer(UserCreateSerializer):
             'password',
         )
 
+
 class PasswordSetSerializer(UserSerializer):
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
@@ -75,37 +76,6 @@ class PasswordSetSerializer(UserSerializer):
         instance.set_password(validated_data["new_password"])
         instance.save()
         return instance
-
-
-# class Set_PasswordSerializer(serializers.Serializer):
-#
-#     current_password = serializers.CharField()
-#     new_password = serializers.CharField()
-#
-#     def validate(self, validated_data):
-#         try:
-#             validate_password(validated_data['new_password'])
-#         except exceptions.ValidationError as exept:
-#             raise serializers.ValidationError(
-#                 {'new_password': list(exept.messages)}
-#             )
-#         return super().validate(validated_data)
-#
-#     def update(self, instance, validated_data):
-#         if not instance.check_password(validated_data['current_password']):
-#             raise serializers.ValidationError(
-#                 {'current_password': 'Неправильный пароль.'}
-#             )
-#         if (
-#             validated_data['current_password']
-#             == validated_data['new_password']
-#         ):
-#             raise serializers.ValidationError(
-#                 {'new_password': 'Новый пароль должен отличаться от текущего.'}
-#             )
-#         instance.set_password(validated_data['new_password'])
-#         instance.save()
-#         return validated_data
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
@@ -142,7 +112,8 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return (
             user.is_authenticated
-            and user.subscriber.filter(author=validated_data).exists()
+            and user.subscriber.filter(author=validated_data)
+            .exists()
         )
 
     def get_recipes_count(self, validated_data):

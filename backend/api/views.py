@@ -15,7 +15,9 @@ from .serializer import (
     IngredientSerializer,
     RecipeSerializer,
     RecipeCreateSerializer,
-    RecipeListSerializer, PasswordSetSerializer)
+    RecipeListSerializer,
+    PasswordSetSerializer
+)
 from .filters import RecipesFilter, TagFilter
 from .pagination import CustomPaginator
 from .permissions import CustomAuthorOrReadOnly
@@ -94,7 +96,8 @@ class CustomUserViewSet(UserViewSet):
                 {"detail": 'Нет подписки на этого пользователя.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        Subscriptions.objects.filter(user=request.user.id, author=user).delete()
+        Subscriptions.objects.filter(user=request.user.id,
+                                     author=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
