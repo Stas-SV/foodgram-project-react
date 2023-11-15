@@ -9,9 +9,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='secretkey')
 
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = True
 
-ALLOWED_HOSTS = ['158.160.66.58', '127.0.0.1', 'localhost', 'oscartaski.myvnc.com']
+ALLOWED_HOSTS = [
+    '158.160.66.58', 
+    '127.0.0.1', 
+    'localhost', 
+    'oscar-carrot.myvnc.com'
+    ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',

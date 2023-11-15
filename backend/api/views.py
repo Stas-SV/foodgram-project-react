@@ -15,10 +15,8 @@ from .serializer import (
     IngredientSerializer,
     RecipeSerializer,
     RecipeCreateSerializer,
-    RecipeListSerializer,
-    PasswordSetSerializer
-)
-from .filters import RecipesFilter, TagFilter
+    RecipeListSerializer, PasswordSetSerializer, SubscriptionsSerializer)
+from .filters import RecipesFilter
 from .pagination import CustomPaginator
 from .permissions import CustomAuthorOrReadOnly
 from recipes.models import (
@@ -51,6 +49,16 @@ class CustomUserViewSet(UserViewSet):
         elif self.request.method == "POST":
             return UserCreateSerializer
 
+    @action(
+        detail=False,
+        methods=['get'],
+        pagination_class=None,
+        permission_classes=(IsAuthenticated,),
+    )
+    def me(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         password = request.data.get("password")
         serializer = self.get_serializer(data=request.data)
@@ -67,38 +75,19 @@ class CustomUserViewSet(UserViewSet):
         pagination_class=None,
     )
     def subscribe(self, request, **kwargs):
-        user = self.get_object().pk
-        subscription = Subscriptions.objects.filter(
-            user=request.user.id, author=user
-        ).exists()
-        if request.method == "POST":
-            if user == request.user.id:
-                return Response(
-                    {"detail": "Нельзя подписаться на себя."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            if not subscription:
-                obj = Subscriptions.objects.create(
-                    user=request.user, author_id=user)
-                serializer = SubscribeListSerializer(
-                    obj, context={"request": request}
-                )
-                return Response(
-                    serializer.data,
-                    status=status.HTTP_201_CREATED)
-            else:
-                return Response(
-                    {"detail": "Вы уже подписаны на этого автора."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        if not subscription:
-            return Response(
-                {"detail": 'Нет подписки на этого пользователя.'},
-                status=status.HTTP_400_BAD_REQUEST,
+        user = self.request.user
+        author = get_object_or_404(User, id=kwargs['id'])
+        if request.method == 'POST':
+            serializer = SubscribeListSerializer(
+                author, data=request.data, context={'request': request}
             )
-        Subscriptions.objects.filter(user=request.user.id,
-                                     author=user).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            serializer.is_valid(raise_exception=True)
+            Subscriptions.objects.create(user=user, author=author)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        get_object_or_404(Subscriptions, user=user, author=author).delete()
+        return Response(
+            {'detail': 'Подписка удалена'}, status=status.HTTP_204_NO_CONTENT
+        )
 
     @action(
         detail=False,
@@ -106,27 +95,19 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def subscriptions(self, request):
-        queryset = Subscriptions.objects.filter(
-            user=request.user).prefetch_related("author")
-        queryset = self.filter_queryset(queryset)
+        queryset = User.objects.filter(subscribing__user=request.user)
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = SubscribeListSerializer(
-                page, many=True, context={"request": request}
-            )
-            return self.get_paginated_response(serializer.data)
-        serializer = SubscribeListSerializer(
-            queryset, many=True, context={"request": request}
+        serializer = SubscriptionsSerializer(
+            page, many=True, context={'request': request}
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
 
-class TagViewsSet(viewsets.ModelViewSet):
+class TagViewsSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
     permission_classes = (AllowAny,)
-    filterset_class = TagFilter
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -173,7 +154,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        url_path='favorite'
+        url_path='favorite',
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
@@ -208,10 +189,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         pagination_class=None,
     )
     def shopping_cart(self, request, **kwargs):
-        recipe = get_object_or_404(Recipe, id=kwargs['pk'])
+        if Recipe.objects.filter(id=kwargs.get('pk')).exists():
+            recipe = Recipe.objects.get(id=kwargs.get('pk'))
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if request.method == 'POST':
-            serializer = RecipeSerializer(recipe, data=request.data,
+            serializer = RecipeListSerializer(recipe, data=request.data,
                                           context={"request": request})
             serializer.is_valid(raise_exception=True)
             if not Shopping_cart.objects.filter(user=request.user,

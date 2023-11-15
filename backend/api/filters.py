@@ -1,6 +1,7 @@
 from django_filters import rest_framework as filters
 
 from recipes.models import Recipe, Tag
+from rest_framework.exceptions import AuthenticationFailed
 
 
 class RecipesFilter(filters.FilterSet):
@@ -39,7 +40,3 @@ class RecipesFilter(filters.FilterSet):
             return queryset.filter(author=value)
         else:
             return queryset
-
-
-class TagFilter(filters.FilterSet):
-    tags = filters.AllValuesMultipleFilter(field_name='slug')

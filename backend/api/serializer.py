@@ -1,10 +1,11 @@
 import webcolors
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.validators import ValidationError
 from django.db import transaction
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
-from users.models import User
+from users.models import User, Subscriptions
 
 
 MAX_LIMIT = 32000
@@ -51,7 +52,6 @@ class UserCreateSerializer(UserCreateSerializer):
             'last_name',
             'password',
         )
-
 
 class PasswordSetSerializer(UserSerializer):
     current_password = serializers.CharField(required=True)
@@ -112,8 +112,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return (
             user.is_authenticated
-            and user.subscriber.filter(author=validated_data)
-            .exists()
+            and user.subscriber.filter(author=validated_data).exists()
         )
 
     def get_recipes_count(self, validated_data):
@@ -133,6 +132,8 @@ class SubscribeListSerializer(serializers.ModelSerializer):
 
     email = serializers.ReadOnlyField()
     username = serializers.ReadOnlyField()
+    first_name = serializers.ReadOnlyField()
+    last_name = serializers.ReadOnlyField()
     is_subscribed = serializers.SerializerMethodField()
     recipes = RecipeListSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField()
@@ -151,9 +152,17 @@ class SubscribeListSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, validated_data):
-        if self.context['request'].user == validated_data:
-            raise serializers.ValidationError(
-                {'errors': 'Нет смысла подписаться на себя.'}
+        author = self.instance
+        user = self.context.get('request').user
+        if Subscriptions.objects.filter(author=author, user=user).exists():
+            raise ValidationError(
+                detail='Вы уже подписаны на этого пользователя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        if user == author:
+            raise ValidationError(
+                detail='Вы не можете подписаться на самого себя!',
+                code=status.HTTP_400_BAD_REQUEST
             )
         return validated_data
 
@@ -292,17 +301,19 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         ingredients = self.initial_data.get('ingredients')
         tags = self.initial_data.get('tags')
-        list = []
+        image = self.initial_data.get('image')
+        list_ingredients = []
+        list_tags = []
         if not ingredients:
             raise serializers.ValidationError(
                 {'ingredients': 'Нужно выбрать хотя бы один ингредиент!'})
         for ingredient in ingredients:
             amount = ingredient['amount']
-            if ingredient['id'] in list:
+            if ingredient['id'] in list_ingredients:
                 raise serializers.ValidationError({
                     'ingredient': 'Ингредиенты не могут повторяться!'
                 })
-            list.append(ingredient['id'])
+            list_ingredients.append(ingredient['id'])
             if int(amount) < 1:
                 raise serializers.ValidationError({
                     'amount': 'Количество ингредиента должно быть больше 0!'
@@ -310,6 +321,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if not tags:
             raise serializers.ValidationError(
                 {'tags': 'Нужно выбрать хотя бы один тег!'})
+        for tag in tags:
+            if tag in list_tags:
+                raise serializers.ValidationError({
+                    'ingredient': 'Ингредиенты не могут повторяться!'
+                })
+            list_tags.append(tag)
+        if not image:
+            raise serializers.ValidationError(
+                {'tags': 'Нужно выбрать картинку!'})
         return data
 
     def add_ingredients(self, recipe, ingredients):
