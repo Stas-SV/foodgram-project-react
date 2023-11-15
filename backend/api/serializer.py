@@ -53,6 +53,7 @@ class UserCreateSerializer(UserCreateSerializer):
             'password',
         )
 
+
 class PasswordSetSerializer(UserSerializer):
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)

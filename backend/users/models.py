@@ -8,16 +8,16 @@ LEN_STRING = 150
 
 class User(AbstractUser):
     email = models.EmailField(max_length=LEN_EMAIL, unique=True)
-    username = models.CharField(max_length=LEN_STRING,
-                                unique=True,
-                                validators=[
-                                    RegexValidator(
-                                        regex='^[\w.@+-]+\Z',
-                                        message='Username must be Alphanumeric',
-                                        code='invalid_username'
-                                    ),
-                                ]
-                                )
+    username = models.CharField(
+        max_length=LEN_STRING,
+        unique=True,
+        validators=[RegexValidator(
+            regex='^[\\w.@+-]+\\Z',
+            message='Username must be Alphanumeric',
+            code='invalid_username'
+        ),
+        ]
+    )
     first_name = models.CharField(
         'имя', max_length=LEN_STRING
     )

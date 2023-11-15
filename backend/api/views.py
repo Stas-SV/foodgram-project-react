@@ -196,7 +196,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             serializer = RecipeListSerializer(recipe, data=request.data,
-                                          context={"request": request})
+                                              context={"request": request})
             serializer.is_valid(raise_exception=True)
             if not Shopping_cart.objects.filter(user=request.user,
                                                 recipe=recipe).exists():

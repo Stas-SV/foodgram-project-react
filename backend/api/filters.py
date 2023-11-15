@@ -1,7 +1,6 @@
 from django_filters import rest_framework as filters
 
 from recipes.models import Recipe, Tag
-from rest_framework.exceptions import AuthenticationFailed
 
 
 class RecipesFilter(filters.FilterSet):
