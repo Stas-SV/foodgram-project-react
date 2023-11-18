@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from recipes.models import Recipe, Tag
+from recipes.models import Recipe
 
 
 class RecipesFilter(filters.FilterSet):
@@ -33,7 +33,6 @@ class RecipesFilter(filters.FilterSet):
         return queryset
 
     def filter_author(self, queryset, name, value):
-        user = self.request.user
         if value:
             return queryset.filter(author=value)
         else:
