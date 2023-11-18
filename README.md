@@ -25,7 +25,7 @@ Foodgram - сервис для публикации рецептов.
 
 <h3>Запустить проект:</h3>
 <ul>
-<li>https://oscartaski.myvnc.com</li>
+<li>https://oscar-carrot.myvnc.com/</li>
 </ul>
 <h3>Админка:</h3>
 <ul>
@@ -35,4 +35,4 @@ Foodgram - сервис для публикации рецептов.
 </ul>
 <li>dockerhub_username: stanon</li>
 <li>repo_owner: Stas-SV</li>
-<li>Спецификация доступна по адресу: https://oscartaski.myvnc.com/api/docs/</li>
+<li>Спецификация доступна по адресу: https://oscar-carrot.myvnc.com/api/docs/</li>
