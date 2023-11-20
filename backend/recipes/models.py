@@ -20,10 +20,11 @@ class Tag(models.Model):
                        unique=True,
                        help_text='Введите НЕХ-код',
                        validators=[
-                           RegexValidator('^#(?:[0-9A-F]{3}){1,2}$',
-                                          message='Код HEX повторяется или невалидный'
-                                          ),
-    ]
+                           RegexValidator(
+                               '^#(?:[0-9A-F]{3}){1,2}$',
+                               message='Код HEX повторяется или невалидный'
+                           ),
+                       ]
                        )
 
     slug = models.SlugField(verbose_name='Slug',

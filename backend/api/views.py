@@ -228,7 +228,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 if not Shopping_cart.objects.filter(user=request.user,
                                                     recipe=recipe).exists():
-                    Shopping_cart.objects.create(user=request.user, recipe=recipe)
+                    Shopping_cart.objects.create(user=request.user,
+                                                 recipe=recipe)
                     return Response(serializer.data,
                                     status=status.HTTP_201_CREATED)
                 return Response({'errors': 'Рецепт уже в списке покупок.'},
