@@ -1,6 +1,6 @@
 from colorfield.fields import ColorField
 from django.core import validators
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 
 from users.models import User
@@ -18,12 +18,17 @@ class Tag(models.Model):
                             )
     color = ColorField(verbose_name='Цвет',
                        unique=True,
-                       help_text='Введите НЕХ-код'
+                       help_text='Введите НЕХ-код',
+                       validators=[
+                           RegexValidator('^#(?:[0-9A-F]{3}){1,2}$',
+                                          message='Код HEX повторяется или невалидный'
+                                          ),
+    ]
                        )
 
     slug = models.SlugField(verbose_name='Slug',
                             max_length=MAX_LENGTH,
-                            unique=True
+                            unique=True,
                             )
 
     class Meta:
