@@ -24,7 +24,7 @@ from .serializer import (CustomUserSerializer, IngredientSerializer,
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
-    permission_classes = (AllowAny,)
+    permission_classes = (CustomAuthorOrReadOnly,)
     pagination_class = CustomPaginator
 
     def get_serializer_class(self):

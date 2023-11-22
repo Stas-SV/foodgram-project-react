@@ -4,11 +4,7 @@ from recipes.models import Recipe, Tag
 
 
 class RecipesFilter(filters.FilterSet):
-    tags = filters.ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
-        queryset=Tag.objects.all(),
-    )
+    tags = filters.CharFilter(method='filter_tags')
     is_favorited = filters.BooleanFilter(method='is_favorited_filter')
     is_in_shopping_cart = filters.BooleanFilter(
         method='is_in_shopping_cart_filter'
@@ -25,9 +21,10 @@ class RecipesFilter(filters.FilterSet):
         user = self.request.user
         if user.is_anonymous:
             return Recipe.objects.none()
+        if value == 0:
+            return queryset
         if value and user.is_authenticated:
             return queryset.filter(favorite_recipe__user=user)
-        return queryset
 
     def is_in_shopping_cart_filter(self, queryset, name, value):
         user = self.request.user
@@ -42,3 +39,7 @@ class RecipesFilter(filters.FilterSet):
             return queryset.filter(author=value)
         else:
             return queryset
+
+    def filter_tags(self, queryset, name, value):
+        tags = self.request.GET.getlist('tags')
+        return queryset.filter(tags__slug__in=tags).distinct()
